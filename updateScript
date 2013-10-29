@@ -1,0 +1,18 @@
+#!/bin/bash
+runningLog=/home/media/xvidMaintainer/lastrunOutput.txt
+finalLog=/home/media/xvidMaintainer/fooLog.txt
+
+running=`ps aux | egrep "MediaConverter" | grep -v grep`
+if [ "$running" = "" ]
+then
+	startDate=`date`
+	rm -fv $runningLog
+	nice -n 5 java -cp /home/media/xvidMaintainer/XboxMediaProcessor.jar com.jentfoo.MediaConverter /home/media/video/foo /home/media/video/xvidFoo 2>&1 | tee $runningLog
+	echo $startDate >> $finalLog
+	cat $runningLog | egrep -v "Waiting on . threads to finish" | egrep -v "Estimated % done: " | egrep -v "^$" >> $finalLog
+	rm -fv /home/media/divx2pass.log ./divx2pass.log
+	echo "Finished processing xvidFoo"
+else
+	echo "Instance already running: "
+	echo $running
+fi
