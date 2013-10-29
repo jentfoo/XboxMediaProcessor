@@ -36,9 +36,22 @@ public class MediaConverter {
   };
   
   public static void main(String args[]) {
+    try {
+      parseArgsAndRun(args);
+    } catch (IllegalArgumentException e) {
+      System.err.println(e.getMessage());
+      System.err.println("Usage: ");
+      System.err.println("java -cp XboxMediaProcessor.jar " + 
+                           MediaConverter.class.getName() + 
+                           " <source folder> <destination folder> [mencoder|libav]");
+      
+      System.exit(1);
+    }
+  }
+  
+  private static void parseArgsAndRun(String args[]) {
     if (args.length >= 2) {
-      // TODO - print better usage statement
-      throw new IllegalArgumentException("Must supply two arguments, source folder, destination folder");
+      throw new IllegalArgumentException("Must supply at least two arguments");
     }
     
     File sourceFolder = new File(args[0]);
@@ -73,14 +86,14 @@ public class MediaConverter {
     startProcessingFiles(converter, destFolder, sourceFolder);
   }
   
-  private static void startProcessingFiles(ConverterInterface converter, 
-                                           File destFolder, File sourceFolder) {
+  private static void startProcessingFiles(final ConverterInterface converter, 
+                                           final File destFolder, final File sourceFolder) {
     PriorityScheduledExecutor scheduler = new PriorityScheduledExecutor(ENCODE_PARALLEL_COUNT, THREAD_COUNT, 10 * 1000, 
                                                                         TaskPriority.High, 10 * 1000, true);
     
     try {
-      File[] origDestFileArray = destFolder.listFiles();
-      File[] sourceFileArray = sourceFolder.listFiles();
+      final File[] origDestFileArray = destFolder.listFiles();
+      final File[] sourceFileArray = sourceFolder.listFiles();
       
       List<File> sourceFileList = makeValidSourceList(converter, 
                                                       sourceFileArray, 
@@ -92,15 +105,25 @@ public class MediaConverter {
                                                        sourceFileList, 
                                                        destFolder);
       
-      scheduleKillTask(scheduler, converter, jobs, destFolder);
-  
-      // wait for all running processes to finish
-      waitForJobs(jobs);
-      
-      // TODO - schedule this on the converterPool before waitForJobs
-      deleteRemovedFiles(converter, origDestFileArray, 
-                         sourceFolder.listFiles(), // get new list, in case some were deleted while processing
-                         destFolder);
+      if (jobs.isEmpty()) {
+        deleteRemovedFiles(converter, origDestFileArray, 
+                           sourceFileArray,
+                           destFolder);
+      } else {
+        scheduleKillTask(scheduler, converter, jobs, destFolder);
+        
+        converterPool.scheduleWithFixedDelay(new Runnable() {
+          @Override
+          public void run() {
+            deleteRemovedFiles(converter, origDestFileArray, 
+                               sourceFolder.listFiles(),
+                               destFolder);
+          }
+        }, 0, 1000 * 60 * 10, TaskPriority.Low);
+        
+        // wait for all running processes to finish
+        waitForJobs(jobs);
+      }
     } finally {
       scheduler.shutdown();
     }
@@ -170,7 +193,7 @@ public class MediaConverter {
     }
   }
   
-  // TODO - run this in parallel with conversions
+  // TODO - do we want to move this functionality into another class
   private static void deleteRemovedFiles(ConverterInterface converter, 
                                          File[] origDestFileList, 
                                          File[] sourceFileArray, 
