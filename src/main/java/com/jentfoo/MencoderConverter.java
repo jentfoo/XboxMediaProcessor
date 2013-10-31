@@ -1,11 +1,8 @@
 package com.jentfoo;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -22,9 +19,7 @@ public class MencoderConverter implements ConverterInterface {
   //private static final String FLAGS = "-oac mp3lame -lameopts vol=5.5 " +
   private static final String FLAGS = "-oac mp3lame -ovc xvid -xvidencopts fixed_quant=2 -sws 8";
   //private static final String FLAGS = "-oac mp3lame -ovc lavc -lavcopts vcodec=mpeg4:vhq:vbitrate=8000";
-  private static final int FILE_SIZE_STABILITY_TIME_IN_MILLIS = 1000 * 10;
   private static final String DESIRED_EXTENSION = ".avi";
-  private static final int BUFFER_SIZE = 8192;
   
   @Override
   public String getProducedExtesion() {
@@ -88,7 +83,7 @@ public class MencoderConverter implements ConverterInterface {
     @Override
     public void run() {
       // verify file is not still growing before continuing
-      if (! sizeStable(sourceFile, originalSize, creationTime)) {
+      if (! FileUtils.sizeStable(sourceFile, originalSize, creationTime)) {
         processedCount.incrementAndGet();
         
         return;
@@ -109,7 +104,8 @@ public class MencoderConverter implements ConverterInterface {
         } catch (IOException e) {
           throw ExceptionUtils.makeRuntime(e);
         } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
+          ExceptionUtils.handleException(e);
+          return;
         }
       } else {
         // copy the file
@@ -118,7 +114,7 @@ public class MencoderConverter implements ConverterInterface {
         }
         
         try {
-          copyFile(sourceFile, newFile);
+          FileUtils.copyFile(sourceFile, newFile);
         } catch (IOException e) {
           throw ExceptionUtils.makeRuntime(e);
         }
@@ -134,72 +130,29 @@ public class MencoderConverter implements ConverterInterface {
       }
     }
     
-    private static boolean sizeStable(File file, 
-                                      long originalSize, 
-                                      long sizeCaptureTime) {
-      long elapsedTime = Clock.lastKnownTimeMillis() - sizeCaptureTime;
-      if (elapsedTime < FILE_SIZE_STABILITY_TIME_IN_MILLIS - 10) {  // only sleep if we need to wait at least 10ms
-        try {
-          Thread.sleep(FILE_SIZE_STABILITY_TIME_IN_MILLIS - elapsedTime);
-        } catch (InterruptedException e1) {
-          Thread.currentThread().interrupt();
-        }
-      }
-      
-      long newSize = file.length();
-      if (newSize != originalSize) {
-        System.out.println("Filesize changed for file: " + file + 
-                             "..." + originalSize + "/" + newSize);
-        
-        return false;
-      } else {
-        return true;
-      }
-    }
-    
     private static void encodeFile(File sourceFile, File destFile) throws IOException, InterruptedException {
-      String[] command = {"/bin/bash",
-                          "-c", 
-                          "mencoder '" + sourceFile.getAbsolutePath() + '\'' + 
-                            " "  + FLAGS + " -o '" + destFile.getAbsolutePath() + '\''
-                         };
+      String command = "mencoder '" + sourceFile.getAbsolutePath() + '\'' + 
+                            " "  + FLAGS + " -o '" + destFile.getAbsolutePath() + '\'';
       Process p = Runtime.getRuntime().exec(command);
 
-      byte[] buf = new byte[BUFFER_SIZE];
+      byte[] buf = new byte[2048];
       InputStream stdOutIs = p.getInputStream();
-      InputStream stdErrIs = p.getErrorStream();
-      while (stdOutIs.read(buf) > -1 || 
-             stdErrIs.read(buf) > -1) {
-        // consume
+      try {
+        InputStream stdErrIs = p.getErrorStream();
+        try {
+          while (stdOutIs.read(buf) > -1 || 
+                 stdErrIs.read(buf) > -1) {
+            // consume
+          }
+        } finally {
+          stdErrIs.close();
+        }
+      } finally {
+        stdOutIs.close();
       }
       
       if (p.waitFor() != 0) {
-        throw new IllegalStateException("non-zero exit code for command: " + command[2]);
-      }
-    }
-    
-    private static void copyFile(File sourceFile, File destFile) throws IOException {
-      InputStream in = null;
-      OutputStream out = null;
-      try {
-        in = new FileInputStream(sourceFile);
-        out = new FileOutputStream(destFile);
-
-        byte[] buf = new byte[BUFFER_SIZE];
-        int len;
-        while ((len = in.read(buf)) > 0){
-          out.write(buf, 0, len);
-        }
-      } finally {
-        try {
-          if (in != null) {
-            in.close();
-          }
-        } finally {
-          if (out != null) {
-            out.close();
-          }
-        }
+        throw new IllegalStateException("non-zero exit code for command: " + command);
       }
     }
   }

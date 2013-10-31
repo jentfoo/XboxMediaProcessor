@@ -21,13 +21,14 @@ public class MediaConverter {
   private static final short THREAD_COUNT = 8;
   private static final short ENCODE_PARALLEL_COUNT = 4;
   private static final long MAX_RUN_TIME = 1000 * 60 * 60 * 24 * 2; // 2 days in millis
-  private static final ConverterType DEFAULT_CONVERTER_TYPE = ConverterType.Mencoder; // TODO - make type automatically picked
   
   public enum ConverterType { 
-    Mencoder;
+    Libav, Mencoder;
 
     public static ConverterType parse(String type) {
-      if (Mencoder.name().equalsIgnoreCase(type)) {
+      if (Libav.name().equalsIgnoreCase(type)) {
+        return Libav;
+      } else if (Mencoder.name().equalsIgnoreCase(type)) {
         return Mencoder;
       } else {
         throw new IllegalArgumentException("Unknown converter type: " + type);
@@ -68,7 +69,12 @@ public class MediaConverter {
       throw new IllegalStateException("Destination folder is not a folder");
     }
     
-    ConverterType converterType = DEFAULT_CONVERTER_TYPE;
+    ConverterType converterType;
+    if (LibavConverter.getAvconvExecutable() != null) {
+      converterType = ConverterType.Libav;
+    } else {
+      converterType = ConverterType.Mencoder;
+    }
     if (args.length > 2) {
       converterType = ConverterType.parse(args[2]);
     }
@@ -78,7 +84,9 @@ public class MediaConverter {
       case Mencoder:
         converter = new MencoderConverter();
         break;
-      // TODO - add libav
+      case Libav:
+        converter = new LibavConverter();
+        break;
       default:
         throw new UnsupportedOperationException("Unhandled converter type: " + converterType);
     }
