@@ -8,7 +8,7 @@ Mencoder converter:
 Mencoder converts the files to a .avi file with the xvid codec which is playable on the xbox.  If the video is already a .avi it will just direct copy it.  If it is anything else it will use mencoder to convert the file into a format known to work with the xbox.  This has the advantage to copying files which are likely already viewable for the xbox.
 
 Libav converter:
-The libav converter currently has no ability to copy correct files.  It processes over all files, and makes sure that the video and audio codec are such that it is playable on the xbox in the best possible quality.
+The libav converter is much more advanced.  It inspects the audio codec and the video codec, as well as the container.  If all match what the xbox needs for h264 + ac3 it just copies the file.  Otherwise it copies or encodes the file as necessary to make it work for the xbox.
 
 By running this on a cron job you can use this utility to constantly watch a directory to keep another directory up to date to be playable within the xbox.  Once you have watched the video you can move or delete it, and the updated directory file will be removed on the next run (thus keeping disk usage lowish).
 
