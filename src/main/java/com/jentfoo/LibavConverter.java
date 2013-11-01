@@ -35,9 +35,9 @@ public class LibavConverter implements ConverterInterface {
   
   private static final boolean VERBOSE = true;
   private static final String AVCONV_ENCODE_GLOBAL_FLAGS = "-threads 2";
-  private static final String AVCONV_ENCODE_ALL_FLAGS = AVCONV_ENCODE_GLOBAL_FLAGS + " -vcodec libx264 -acodec ac3 -ab 160k";
+  private static final String AVCONV_ENCODE_ALL_FLAGS = AVCONV_ENCODE_GLOBAL_FLAGS + " -vcodec libx264 -acodec ac3 -ab 512k";
   private static final String AVCONV_ENCODE_VIDEO_FLAGS = AVCONV_ENCODE_GLOBAL_FLAGS + " -vcodec libx264 -acodec copy";
-  private static final String AVCONV_ENCODE_AUDIO_FLAGS = AVCONV_ENCODE_GLOBAL_FLAGS + " -vcodec copy -acodec ac3 -ab 160k";
+  private static final String AVCONV_ENCODE_AUDIO_FLAGS = AVCONV_ENCODE_GLOBAL_FLAGS + " -vcodec copy -acodec ac3 -ab 512k";
   private static final String AVCONV_COPY_FLAGS = AVCONV_ENCODE_GLOBAL_FLAGS + " -vcodec copy -acodec copy";
   private static final String DESIRED_EXTENSION = ".mp4";
   
