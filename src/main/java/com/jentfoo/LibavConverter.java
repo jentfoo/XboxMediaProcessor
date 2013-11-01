@@ -212,8 +212,11 @@ public class LibavConverter implements ConverterInterface {
     private static void encodeFile(File sourceFile, File destFile, 
                                    String flags) throws IOException, 
                                                         InterruptedException {
-      String command = libavExecutable.getAbsolutePath() + " -i '" + sourceFile.getAbsolutePath() + '\'' + 
-                         " "  + flags + " '" + destFile.getAbsolutePath() + '\'';
+      String command[] = {"bash", 
+                          "-c", 
+                          libavExecutable.getAbsolutePath() + " -i '" + sourceFile.getAbsolutePath() + '\'' + 
+                            " "  + flags + " '" + destFile.getAbsolutePath() + '\''
+                         };
       Process p = Runtime.getRuntime().exec(command);
 
       byte[] buf = new byte[2048];
@@ -233,7 +236,7 @@ public class LibavConverter implements ConverterInterface {
       }
       
       if (p.waitFor() != 0) {
-        throw new IllegalStateException("non-zero exit code for command: " + command);
+        throw new IllegalStateException("non-zero exit code for command: " + command[2]);
       }
     }
   }

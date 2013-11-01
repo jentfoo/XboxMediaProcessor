@@ -51,8 +51,10 @@ public class MediaConverter {
   }
   
   private static void parseArgsAndRun(String args[]) {
-    if (args.length >= 2) {
+    if (args.length < 2) {
       throw new IllegalArgumentException("Must supply at least two arguments");
+    } else if (args.length > 3) {
+      throw new IllegalArgumentException("Only 3 valid arguments are permitted");
     }
     
     File sourceFolder = new File(args[0]);

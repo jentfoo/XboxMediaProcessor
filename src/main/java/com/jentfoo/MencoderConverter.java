@@ -131,8 +131,11 @@ public class MencoderConverter implements ConverterInterface {
     }
     
     private static void encodeFile(File sourceFile, File destFile) throws IOException, InterruptedException {
-      String command = "mencoder '" + sourceFile.getAbsolutePath() + '\'' + 
-                            " "  + FLAGS + " -o '" + destFile.getAbsolutePath() + '\'';
+      String command[] = {"bash", 
+                          "-c", 
+                          "mencoder '" + sourceFile.getAbsolutePath() + '\'' + 
+                            " "  + FLAGS + " -o '" + destFile.getAbsolutePath() + '\''
+                         };
       Process p = Runtime.getRuntime().exec(command);
 
       byte[] buf = new byte[2048];
@@ -152,7 +155,7 @@ public class MencoderConverter implements ConverterInterface {
       }
       
       if (p.waitFor() != 0) {
-        throw new IllegalStateException("non-zero exit code for command: " + command);
+        throw new IllegalStateException("non-zero exit code for command: " + command[2]);
       }
     }
   }
