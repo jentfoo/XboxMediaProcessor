@@ -134,21 +134,15 @@ public class MencoderConverter implements ConverterInterface {
       String command[] = {"bash", 
                           "-c", 
                           "mencoder '" + sourceFile.getAbsolutePath() + '\'' + 
-                            " "  + FLAGS + " -o '" + destFile.getAbsolutePath() + '\''
+                            " "  + FLAGS + " -o '" + destFile.getAbsolutePath() + "\' 2>&1"
                          };
       Process p = Runtime.getRuntime().exec(command);
 
       byte[] buf = new byte[2048];
       InputStream stdOutIs = p.getInputStream();
       try {
-        InputStream stdErrIs = p.getErrorStream();
-        try {
-          while (stdOutIs.read(buf) > -1 || 
-                 stdErrIs.read(buf) > -1) {
-            // consume
-          }
-        } finally {
-          stdErrIs.close();
+        while (stdOutIs.read(buf) > -1) { 
+          // consume
         }
       } finally {
         stdOutIs.close();

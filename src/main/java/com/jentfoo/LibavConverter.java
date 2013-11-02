@@ -215,21 +215,15 @@ public class LibavConverter implements ConverterInterface {
       String command[] = {"bash", 
                           "-c", 
                           libavExecutable.getAbsolutePath() + " -i '" + sourceFile.getAbsolutePath() + '\'' + 
-                            " "  + flags + " '" + destFile.getAbsolutePath() + '\''
+                            " "  + flags + " '" + destFile.getAbsolutePath() + "\' 2>&1"
                          };
       Process p = Runtime.getRuntime().exec(command);
 
       byte[] buf = new byte[2048];
       InputStream stdOutIs = p.getInputStream();
       try {
-        InputStream stdErrIs = p.getErrorStream();
-        try {
-          while (stdOutIs.read(buf) > -1 || 
-                 stdErrIs.read(buf) > -1) {
-            // consume
-          }
-        } finally {
-          stdErrIs.close();
+        while (stdOutIs.read(buf) > -1) { 
+          // consume
         }
       } finally {
         stdOutIs.close();
