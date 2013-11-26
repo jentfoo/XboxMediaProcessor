@@ -18,8 +18,8 @@ import org.threadly.concurrent.TaskPriority;
 
 public class MediaConverter {
   private static final boolean VERBOSE = true;
-  private static final short THREAD_COUNT = 8;
-  private static final short ENCODE_PARALLEL_COUNT = 4;
+  private static final short THREAD_COUNT = 16;
+  private static final short DEFAULT_ENCODE_PARALLEL_COUNT = 4;
   private static final long MAX_RUN_TIME = 1000 * 60 * 60 * 24 * 2; // 2 days in millis
   
   public enum ConverterType { 
@@ -53,8 +53,8 @@ public class MediaConverter {
   private static void parseArgsAndRun(String args[]) {
     if (args.length < 2) {
       throw new IllegalArgumentException("Must supply at least two arguments");
-    } else if (args.length > 3) {
-      throw new IllegalArgumentException("Only 3 valid arguments are permitted");
+    } else if (args.length > 4) {
+      throw new IllegalArgumentException("Only 4 valid arguments are permitted");
     }
     
     File sourceFolder = new File(args[0]);
@@ -80,6 +80,10 @@ public class MediaConverter {
     if (args.length > 2) {
       converterType = ConverterType.parse(args[2]);
     }
+    int encodeParallelCount = DEFAULT_ENCODE_PARALLEL_COUNT;
+    if (args.length > 3) {
+      encodeParallelCount = Integer.parseInt(args[3]);
+    }
     
     ConverterInterface converter;
     switch (converterType) {
@@ -93,12 +97,16 @@ public class MediaConverter {
         throw new UnsupportedOperationException("Unhandled converter type: " + converterType);
     }
     
-    startProcessingFiles(converter, destFolder, sourceFolder);
+    startProcessingFiles(encodeParallelCount, 
+                         converter, destFolder, sourceFolder);
   }
   
-  private static void startProcessingFiles(final ConverterInterface converter, 
+  private static void startProcessingFiles(int encodeParallelCount, 
+                                           final ConverterInterface converter, 
                                            final File destFolder, final File sourceFolder) {
-    PriorityScheduledExecutor scheduler = new PriorityScheduledExecutor(ENCODE_PARALLEL_COUNT, THREAD_COUNT, 10 * 1000, 
+    int minThreadCount = encodeParallelCount + 1;
+    int maxThreadCount = Math.max(minThreadCount, THREAD_COUNT);
+    PriorityScheduledExecutor scheduler = new PriorityScheduledExecutor(minThreadCount, maxThreadCount, 10 * 1000, 
                                                                         TaskPriority.High, 10 * 1000, true);
     
     try {
@@ -110,7 +118,7 @@ public class MediaConverter {
                                                       destFolder, 
                                                       origDestFileArray);
       
-      PrioritySchedulerInterface converterPool = scheduler.makeSubPool(ENCODE_PARALLEL_COUNT);
+      PrioritySchedulerInterface converterPool = scheduler.makeSubPool(encodeParallelCount);
       Map<File, Future<?>> jobs = converter.submitJobs(converterPool, 
                                                        sourceFileList, 
                                                        destFolder);
