@@ -131,8 +131,8 @@ public class MencoderConverter implements ConverterInterface {
     }
     
     private static void encodeFile(File sourceFile, File destFile) throws IOException, InterruptedException {
-      String command[] = {"bash", 
-                          "-c", 
+      String command[] = {ShellUtils.getDefaultShell(), 
+                          ShellUtils.getDefaultShellCommandFlag(), 
                           "mencoder '" + sourceFile.getAbsolutePath() + '\'' + 
                             " "  + FLAGS + " -o '" + destFile.getAbsolutePath() + "\' 2>&1"
                          };

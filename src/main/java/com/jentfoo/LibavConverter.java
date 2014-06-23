@@ -17,22 +17,6 @@ import org.threadly.util.Clock;
 import org.threadly.util.ExceptionUtils;
 
 public class LibavConverter implements ConverterInterface {
-  private static final File libavExecutable;
-  
-  static {
-    File executable = new File("/usr/bin/avconv");
-    if (executable.exists() && executable.canExecute()) {
-      libavExecutable = executable;
-    } else {
-      executable = new File("/usr/local/bin/avconv");
-      if (executable.exists() && executable.canExecute()) {
-        libavExecutable = executable;
-      } else {
-        libavExecutable = null; // could not find it
-      }
-    }
-  }
-  
   private static final boolean VERBOSE = true;
   private static final String AVCONV_ENCODE_GLOBAL_FLAGS = "-threads 2";
   private static final String AVCONV_ENCODE_ALL_FLAGS = AVCONV_ENCODE_GLOBAL_FLAGS + " -vcodec libx264 -acodec ac3 -ab 512k";
@@ -41,8 +25,24 @@ public class LibavConverter implements ConverterInterface {
   private static final String AVCONV_COPY_FLAGS = AVCONV_ENCODE_GLOBAL_FLAGS + " -vcodec copy -acodec copy";
   private static final String DESIRED_EXTENSION = ".mp4";
   
+  private static final File LIBAV_EXECUTABLE;
+  
+  static {
+    File executable = new File("/usr/bin/avconv");
+    if (executable.exists() && executable.canExecute()) {
+      LIBAV_EXECUTABLE = executable;
+    } else {
+      executable = new File("/usr/local/bin/avconv");
+      if (executable.exists() && executable.canExecute()) {
+        LIBAV_EXECUTABLE = executable;
+      } else {
+        LIBAV_EXECUTABLE = null; // could not find it
+      }
+    }
+  }
+  
   public static File getAvconvExecutable() {
-    return libavExecutable;
+    return LIBAV_EXECUTABLE;
   }
   
   @Override
@@ -186,10 +186,10 @@ public class LibavConverter implements ConverterInterface {
     }
     
     private static String getFileInfo(File sourceFile) throws IOException {
-      String command[] = {"bash", 
-                          "-c", 
-                          libavExecutable.getAbsolutePath() + " -i '" + 
-                              sourceFile.getAbsolutePath() + "\' 2>&1"
+      String command[] = {ShellUtils.getDefaultShell(), 
+                          ShellUtils.getDefaultShellCommandFlag(), 
+                          LIBAV_EXECUTABLE.getAbsolutePath() + " -i '" + 
+                            sourceFile.getAbsolutePath() + "\' 2>&1"
                          };
       
       Process p = Runtime.getRuntime().exec(command);
@@ -212,9 +212,9 @@ public class LibavConverter implements ConverterInterface {
     private static void encodeFile(File sourceFile, File destFile, 
                                    String flags) throws IOException, 
                                                         InterruptedException {
-      String command[] = {"bash", 
-                          "-c", 
-                          libavExecutable.getAbsolutePath() + " -i '" + sourceFile.getAbsolutePath() + '\'' + 
+      String command[] = {ShellUtils.getDefaultShell(), 
+                          ShellUtils.getDefaultShellCommandFlag(), 
+                          LIBAV_EXECUTABLE.getAbsolutePath() + " -i '" + sourceFile.getAbsolutePath() + '\'' + 
                             " "  + flags + " '" + destFile.getAbsolutePath() + "\' 2>&1"
                          };
       Process p = Runtime.getRuntime().exec(command);

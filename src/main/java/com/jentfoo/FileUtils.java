@@ -9,6 +9,7 @@ import java.io.OutputStream;
 
 import org.threadly.util.Clock;
 import org.threadly.util.ExceptionUtils;
+import org.threadly.util.StringUtils;
 
 public class FileUtils {
   private static final int BUFFER_SIZE = 8192;
@@ -44,7 +45,7 @@ public class FileUtils {
     if (index > 0) {
       return name.substring(index);
     } else {
-      return "";
+      return StringUtils.EMPTY;
     }
   }
 
@@ -100,22 +101,22 @@ public class FileUtils {
     OutputStream out = null;
     try {
       in = new FileInputStream(sourceFile);
-      out = new FileOutputStream(destFile);
-
-      byte[] buf = new byte[BUFFER_SIZE];
-      int len;
-      while ((len = in.read(buf)) > 0){
-        out.write(buf, 0, len);
-      }
-    } finally {
       try {
-        if (in != null) {
-          in.close();
+        out = new FileOutputStream(destFile);
+  
+        byte[] buf = new byte[BUFFER_SIZE];
+        int len;
+        while ((len = in.read(buf)) > 0){
+          out.write(buf, 0, len);
         }
       } finally {
         if (out != null) {
           out.close();
         }
+      }
+    } finally {
+      if (in != null) {
+        in.close();
       }
     }
   }
