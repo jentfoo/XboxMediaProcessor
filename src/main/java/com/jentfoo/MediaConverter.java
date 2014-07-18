@@ -12,7 +12,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.threadly.concurrent.PriorityScheduledExecutor;
+import org.threadly.concurrent.PriorityScheduler;
 import org.threadly.concurrent.PrioritySchedulerInterface;
 import org.threadly.concurrent.TaskPriority;
 
@@ -106,8 +106,8 @@ public class MediaConverter {
                                            final File destFolder, final File sourceFolder) {
     int minThreadCount = encodeParallelCount + 1;
     int maxThreadCount = Math.max(minThreadCount, THREAD_COUNT);
-    PriorityScheduledExecutor scheduler = new PriorityScheduledExecutor(minThreadCount, maxThreadCount, 10 * 1000, 
-                                                                        TaskPriority.High, 10 * 1000, true);
+    PriorityScheduler scheduler = new PriorityScheduler(minThreadCount, maxThreadCount, 10 * 1000, 
+                                                        TaskPriority.High, 10 * 1000, true);
     
     try {
       final File[] origDestFileArray = destFolder.listFiles();
