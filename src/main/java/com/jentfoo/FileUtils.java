@@ -9,7 +9,6 @@ import java.io.OutputStream;
 
 import org.threadly.util.Clock;
 import org.threadly.util.ExceptionUtils;
-import org.threadly.util.StringUtils;
 
 public class FileUtils {
   private static final int BUFFER_SIZE = 8192;
@@ -45,7 +44,7 @@ public class FileUtils {
     if (index > 0) {
       return name.substring(index);
     } else {
-      return StringUtils.EMPTY;
+      return "";
     }
   }
 
