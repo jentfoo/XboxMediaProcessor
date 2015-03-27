@@ -104,10 +104,8 @@ public class MediaConverter {
   private static void startProcessingFiles(int encodeParallelCount, 
                                            final ConverterInterface converter, 
                                            final File destFolder, final File sourceFolder) {
-    int minThreadCount = encodeParallelCount + 1;
-    int maxThreadCount = Math.max(minThreadCount, THREAD_COUNT);
-    PriorityScheduler scheduler = new PriorityScheduler(minThreadCount, maxThreadCount, 10 * 1000, 
-                                                        TaskPriority.High, 10 * 1000, true);
+    int maxThreadCount = Math.max(encodeParallelCount + 1, THREAD_COUNT);
+    PriorityScheduler scheduler = new PriorityScheduler(maxThreadCount, TaskPriority.High, 10 * 1000, true);
     
     try {
       final File[] origDestFileArray = destFolder.listFiles();
