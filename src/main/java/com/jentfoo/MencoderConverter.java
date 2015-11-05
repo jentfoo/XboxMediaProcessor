@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.threadly.concurrent.SubmitterSchedulerInterface;
+import org.threadly.concurrent.SubmitterScheduler;
 import org.threadly.util.Clock;
 import org.threadly.util.ExceptionUtils;
 
@@ -27,7 +27,7 @@ public class MencoderConverter implements ConverterInterface {
   }
   
   @Override
-  public Map<File, Future<?>> submitJobs(SubmitterSchedulerInterface scheduler, 
+  public Map<File, Future<?>> submitJobs(SubmitterScheduler scheduler, 
                                          List<File> sourceFileList, 
                                          File destFolder) {
     File[] origDestFileArray = destFolder.listFiles();

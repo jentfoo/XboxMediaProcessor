@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.threadly.concurrent.SubmitterSchedulerInterface;
+import org.threadly.concurrent.SubmitterScheduler;
 import org.threadly.util.Clock;
 import org.threadly.util.ExceptionUtils;
 
@@ -51,7 +51,7 @@ public class LibavConverter implements ConverterInterface {
   }
   
   @Override
-  public Map<File, Future<?>> submitJobs(SubmitterSchedulerInterface scheduler, 
+  public Map<File, Future<?>> submitJobs(SubmitterScheduler scheduler, 
                                          List<File> sourceFileList, 
                                          File destFolder) {
     File[] origDestFileArray = destFolder.listFiles();

@@ -4,12 +4,12 @@ import java.io.File;
 
 public class ShellUtils {
   private static final String DASH_PATH = "/bin/dash";
-  private static final String BASH_PATH = "/bin/dash";
+  private static final String BASH_PATH = "/bin/bash";
   private static final String DEFAULT_SHELL_COMMAND_FLAG = "-c";
   private static final String DEFAULT_SHELL;
   
   static {
-    File shell = new File("/bin/dash");
+    File shell = new File(DASH_PATH);
     if (shell.exists() && shell.canExecute()) {
       DEFAULT_SHELL = DASH_PATH;
     } else {

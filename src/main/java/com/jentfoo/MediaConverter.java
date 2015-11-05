@@ -13,8 +13,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.threadly.concurrent.PriorityScheduler;
-import org.threadly.concurrent.PrioritySchedulerInterface;
+import org.threadly.concurrent.PrioritySchedulerService;
+import org.threadly.concurrent.SchedulerService;
 import org.threadly.concurrent.TaskPriority;
+import org.threadly.concurrent.limiter.SchedulerServiceLimiter;
 
 public class MediaConverter {
   private static final boolean VERBOSE = true;
@@ -116,7 +118,7 @@ public class MediaConverter {
                                                       destFolder, 
                                                       origDestFileArray);
       
-      PrioritySchedulerInterface converterPool = scheduler.makeSubPool(encodeParallelCount);
+      SchedulerService converterPool = new SchedulerServiceLimiter(scheduler, encodeParallelCount);
       Map<File, Future<?>> jobs = converter.submitJobs(converterPool, 
                                                        sourceFileList, 
                                                        destFolder);
@@ -128,7 +130,7 @@ public class MediaConverter {
       } else {
         scheduleKillTask(scheduler, converter, jobs, destFolder);
         
-        converterPool.scheduleWithFixedDelay(new Runnable() {
+        scheduler.scheduleWithFixedDelay(new Runnable() {
           @Override
           public void run() {
             deleteRemovedFiles(converter, origDestFileArray, 
@@ -145,7 +147,7 @@ public class MediaConverter {
     }
   }
   
-  private static void scheduleKillTask(PrioritySchedulerInterface scheduler, 
+  private static void scheduleKillTask(PrioritySchedulerService scheduler, 
                                        ConverterInterface converter, 
                                        Map<File, Future<?>> jobs, 
                                        File destFolder) {
