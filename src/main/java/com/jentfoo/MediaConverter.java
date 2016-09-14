@@ -16,7 +16,7 @@ import org.threadly.concurrent.PriorityScheduler;
 import org.threadly.concurrent.PrioritySchedulerService;
 import org.threadly.concurrent.SchedulerService;
 import org.threadly.concurrent.TaskPriority;
-import org.threadly.concurrent.limiter.SchedulerServiceLimiter;
+import org.threadly.concurrent.wrapper.limiter.SchedulerServiceLimiter;
 
 public class MediaConverter {
   private static final boolean VERBOSE = true;
@@ -119,9 +119,7 @@ public class MediaConverter {
                                                       origDestFileArray);
       
       SchedulerService converterPool = new SchedulerServiceLimiter(scheduler, encodeParallelCount);
-      Map<File, Future<?>> jobs = converter.submitJobs(converterPool, 
-                                                       sourceFileList, 
-                                                       destFolder);
+      Map<File, Future<?>> jobs = converter.submitJobs(converterPool, sourceFileList, destFolder);
       
       if (jobs.isEmpty()) {
         deleteRemovedFiles(converter, origDestFileArray, 
